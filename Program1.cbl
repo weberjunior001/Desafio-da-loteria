@@ -46,7 +46,7 @@
 
        77  controle                                pic 9(09).
        77  ind1                                    pic 9(02).
-       77  qnt_numero                              pic 9(01).
+       77  qnt_numero                              pic 9(02).
        77  semente                                 pic 9(08).
        77  num_random                              pic 9(02)V9999.
        77  ind2                                    pic 9(02).
@@ -68,6 +68,7 @@
       *>Inicilizacao de variaveis, abertura de arquivos
       *>procedimentos que serao realizados apenas uma vez
        inicializa section.
+      *>inicialização de variaveis
            move 0 to controle
            move 0 to qnt_numero
            move 1 to ind1
@@ -91,22 +92,27 @@
       *>construçao do laço principal (menu) ou regra de negócio
        processamento section.
 
+      *>continuara performando até que escolha um numero entre 6 e 10
            perform until qnt_numero >= 6 and qnt_numero <= 10
                display "Quantos numeros gostaria de apostar?(6 - 10)"
                accept qnt_numero
            end-perform
 
+      *>Ira performar ate que o ind(referente ao numero de apostas) for maior que o numero de apostas desejadas
            perform varying ind1 from 1 by 1 until ind1 > qnt_numero
 
                display "Adicione o " ind1 " numero da aposta:"
                accept numero-ctrl
 
+      *>teste de repetição, para conferir que não aposte o mesmo numero mais de uma vez
                perform teste-repeticao-aposta
                move numero-ctrl to numero(ind1)
 
                display erase
 
            end-perform
+
+      *>performar ate que o a quantidade de numeros do sorteio iguais aos numeros de apostas seja igual a 6
            perform until controle-ctrl = 6
                move 0 to sorteio(6)
                move 0 to sorteio(5)
@@ -123,21 +129,26 @@
                accept numero-ctrl
            end-perform
 
+      *>caso seja igual a seis, significa que acertou os 6 numeros, ganhou na loteria
            if controle-ctrl = 6 then
                display "Parabens, dps de " controle " tentativas, voce ganhou"
+           end-if
            .
        processamento-exit.
            exit.
       *>--------------------------------------------teste-repeticao----
        teste-repeticao-aposta section.
 
+      *> nesse teste garante q a pessoa nao adicione dois numero iguais, e nem numero fora do intervalo de 1 e 60
            perform varying ind1 from 1 by 1 until numero(ind1) = 0
 
+               *> intervalo de 1 a 60
                if numero-ctrl > 60 or numero-ctrl < 1 then
                    display "Voce adicionou um numero fora do intervalo"
                    display "Adicione outro numero"
                    accept numero-ctrl
                end-if
+               *> numeros repetidos
                if numero-ctrl = numero(ind1) then
 
                    display "Voce adicionou um numero repetido"
@@ -153,14 +164,21 @@
 
       *>--------------------------------------------geradorrandom-------
        geradorrandom section.
+      *>perfomar ate que sorteie 6 numeros
            perform varying ind2 from 1 by 1 until ind2 > 6
+
+           *> pega a semente do horario
                accept semente from time
+           *> computa um numero aleatorio a partir da semente
                compute num_random = function random(semente)
+           *> multiplica por 60 para que o numero esteja no intervalo desejado
                multiply num_random by 60 giving sorteio-ctrl
 
+      *>teste de repetição do sorteio pra que nao tenha o mesmo numero entre os sorteados
                perform teste-repeticao-sorteio
                move sorteio-ctrl to sorteio(ind2)
            end-perform
+      *> variavel para controlar quantas vezes foram sorteados
            add 1 to controle.
            .
        geradorrandom-exit.
@@ -169,6 +187,7 @@
 
       *>--------------------------------------------teste-repeticao----
        teste-repeticao-sorteio section.
+      *> teste de repetição do sorteio usando o metodo bolha
            set nao_trocou to true
            perform varying ind2 from 1 by 1 until sorteio(ind2) = 0 or trocou
 
@@ -184,8 +203,11 @@
       *>----------------------------------------------------------------
 
 
-      *>--------------------------------------------teste-repeticao----
+      *>--------------------------------------------teste-ganhador ----
        teste-ganhador section.
+      *>reinicia o valor de controle pra definir o vencedor
+           move 0 to controle-ctrl
+      *>metodo bolha para comparar cada numero sorteado com cada numero apostado
            perform varying ind2 from 1 by 1 until ind2 > 6
 
                perform varying ind1 from 1 by 1 until ind1 > qnt_numero
@@ -195,7 +217,9 @@
                    end-if
 
                end-perform
+
            end-perform
+      *>reiniciar as variaveis associadas ao sorteio e a aposta
            move 1 to ind1
            move 1 to ind2
            .
