@@ -32,8 +32,8 @@
        01  aposta occurs 10.
            05  numero                              pic 9(02).
 
-       01  sorteado occurs 6.
-           05  sorteio                             pic 9(02).
+       01  sorteado.
+           05  sorteio                             pic 9(02) occurs 6.
 
        01  aposta-ctrl.
            05  numero-ctrl                         pic 9(02).
@@ -73,6 +73,7 @@
            move 0 to qnt_numero
            move 1 to ind1
            move 0 to controle-ctrl
+           move 0 to sorteio-ctrl
 
            move 0 to numero(10)
            move 0 to numero(9)
@@ -125,7 +126,9 @@
 
                perform teste-ganhador
 
-               display "Já foi realizado " controle " sorteios"
+               display "Numeros sorteados: " sorteio(1) "-" sorteio(2) "-" sorteio(3) "-" sorteio(4) "-" sorteio(5) "-"
+               sorteio(6)
+               display "Ja foi realizado " controle " sorteios"
                accept numero-ctrl
            end-perform
 
@@ -169,6 +172,7 @@
 
            *> pega a semente do horario
                accept semente from time
+               compute semente = (semente + (ind2 * ind1)) * (semente * (qnt_numero - ind2)) / sorteio-ctrl
            *> computa um numero aleatorio a partir da semente
                compute num_random = function random(semente)
            *> multiplica por 60 para que o numero esteja no intervalo desejado
